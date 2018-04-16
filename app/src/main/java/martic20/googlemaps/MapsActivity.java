@@ -21,7 +21,6 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
-
 /*
 A partir del ejercicio de Geolocalización que realizaste,
 vamos a realizar un pequeño juego, sobre la ciudad de Barcelona
@@ -52,7 +51,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .build();
-
     }
 
     public void onStart() {
@@ -66,15 +64,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     }
 
-    /**
-     * Manipulates the map once available.
-     * This callback is triggered when the map is ready to be used.
-     * This is where we can add markers or lines, add listeners or move the camera. In this case,
-     * we just add a marker near Sydney, Australia.
-     * If Google Play services is not installed on the device, the user will be prompted to install
-     * it inside the SupportMapFragment. This method will only be triggered once the user has
-     * installed Google Play services and returned to the app.
-     */
+
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
@@ -112,43 +102,24 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     private void checkLocationandAddToMap() {
-//Checking if the user has granted the permission
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-//Requesting the Location permission
+
             ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_REQUEST_CODE);
             return;
         }
-
-//Fetching the last known location using the Fus
         Location location = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
 
-//MarkerOptions are used to create a new Marker.You can specify location, title etc with MarkerOptions
         MarkerOptions markerOptions = new MarkerOptions().position(new LatLng(location.getLatitude(), location.getLongitude())).title("You are Here");
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(markerOptions.getPosition(), 18.0f));
 
-//Adding the created the marker on the map
         mMap.addMarker(markerOptions);
-
-    }
-
-
-/*
-    @Override
-    public void onMapReady(GoogleMap googleMap) {
-        mMap = googleMap;
-
-        // Add a marker in Sydney and move the camera
         LatLng sydney = new LatLng(41.395253, 2.161658);
         mMap.addMarker(new MarkerOptions().position(sydney).title("La pedrera"));
-
         LatLng s2 = new LatLng(41.403859, 2.174367);
         mMap.addMarker(new MarkerOptions().position(s2).title("Sagrada Familia"));
-
         LatLng s3 = new LatLng(41.412005, 2.226315);
         mMap.addMarker(new MarkerOptions().position(s3).title("Parc del fórum"));
-
         LatLng s4 = new LatLng(41.391846, 2.164818);
         mMap.addMarker(new MarkerOptions().position(s4).title("Casa Batlló"));
-
     }
-*/
 }
