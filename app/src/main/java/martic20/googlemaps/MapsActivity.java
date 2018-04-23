@@ -1,11 +1,16 @@
 package martic20.googlemaps;
 
+import android.content.DialogInterface;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Location;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.support.v4.util.ArraySet;
+import android.support.v7.app.AlertDialog;
 import android.widget.Toast;
+
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.FusedLocationProviderApi;
@@ -17,7 +22,10 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 /*
 A partir del ejercicio de Geolocalización que realizaste,
@@ -31,7 +39,7 @@ Cuando el usuario consiga los 4/5 lugares marcados, saldrá un mensaje de juego 
 
  */
 
-public class MapsActivity extends FragmentActivity implements LocationListener,OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+public class MapsActivity extends FragmentActivity implements LocationListener, OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     private GoogleMap mMap;
     private GoogleApiClient googleApiClient;
@@ -39,8 +47,10 @@ public class MapsActivity extends FragmentActivity implements LocationListener,O
     private LocationCallback mLocationCallback;
     private FusedLocationProviderApi mFusedLocationClient;
     private boolean mRequestingLocationUpdates;
+    private ArraySet<MarkerOptions> points;
+    private int resueltos = 0;
 
-    private static final String REQUESTING_LOCATION_UPDATES_KEY="location";
+    private static final String REQUESTING_LOCATION_UPDATES_KEY = "location";
 
 
     @Override
@@ -48,12 +58,19 @@ public class MapsActivity extends FragmentActivity implements LocationListener,O
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
 
+        points = new ArraySet<MarkerOptions>();
+        points.add(new MarkerOptions().position(new LatLng(41.395253, 2.161658)).title("La pedrera").zIndex(1));
+        points.add(new MarkerOptions().position(new LatLng(41.403859, 2.174367)).title("Sagrada Familia").zIndex(2));
+        points.add(new MarkerOptions().position(new LatLng(41.412005, 2.226315)).title("Parc del fórum").zIndex(3));
+        points.add(new MarkerOptions().position(new LatLng(41.391846, 2.164818)).title("Casa Batlló").zIndex(4));
+        points.add(new MarkerOptions().position(new LatLng(41.416265, 2.199107)).title("Joan d'austria").zIndex(5));
+
         googleApiClient = new GoogleApiClient.Builder(this)
                 .addApi(LocationServices.API)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .build();
-        mFusedLocationClient=LocationServices.FusedLocationApi;
+        mFusedLocationClient = LocationServices.FusedLocationApi;
         mLocationCallback = new LocationCallback() {
             @Override
             public void onLocationResult(LocationResult locationResult) {
@@ -61,29 +78,22 @@ public class MapsActivity extends FragmentActivity implements LocationListener,O
                     return;
                 }
                 for (Location location : locationResult.getLocations()) {
-                    // Update UI with location data
-                    // ...
+                    Toast.makeText(getBaseContext(), location.toString(), Toast.LENGTH_SHORT).show();
                 }
-            };
+            }
         };
         updateValuesFromBundle(savedInstanceState);
 
     }
+
     private void updateValuesFromBundle(Bundle savedInstanceState) {
         if (savedInstanceState == null) {
             return;
         }
-
-        // Update the value of mRequestingLocationUpdates from the Bundle.
         if (savedInstanceState.keySet().contains(REQUESTING_LOCATION_UPDATES_KEY)) {
             mRequestingLocationUpdates = savedInstanceState.getBoolean(
                     REQUESTING_LOCATION_UPDATES_KEY);
         }
-
-        // ...
-
-        // Update UI to match restored state
-
     }
 
     public void onStart() {
@@ -126,7 +136,6 @@ public class MapsActivity extends FragmentActivity implements LocationListener,O
     }
 
 
-
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
@@ -163,24 +172,85 @@ public class MapsActivity extends FragmentActivity implements LocationListener,O
             ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_REQUEST_CODE);
             return;
         }
-        Location location=mFusedLocationClient.getLastLocation(googleApiClient);
-
+        Location location = mFusedLocationClient.getLastLocation(googleApiClient);
+        //.icon(BitmapDescriptorFactory.fromResource(R.drawable.icon_location)
         MarkerOptions markerOptions = new MarkerOptions().position(new LatLng(location.getLatitude(), location.getLongitude())).title("You are Here");
-                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(markerOptions.getPosition(), 18.0f));
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(markerOptions.getPosition(), 12.0f));
+        for (MarkerOptions point : points) {
+            mMap.addMarker(point);
+        }
+        mMap.addCircle(new CircleOptions().center(markerOptions.getPosition()).fillColor(Color.BLUE).radius(10).strokeColor(Color.BLUE));
 
-        mMap.addMarker(markerOptions);
-        LatLng sydney = new LatLng(41.395253, 2.161658);
-        mMap.addMarker(new MarkerOptions().position(sydney).title("La pedrera"));
-        LatLng s2 = new LatLng(41.403859, 2.174367);
-        mMap.addMarker(new MarkerOptions().position(s2).title("Sagrada Familia"));
-        LatLng s3 = new LatLng(41.412005, 2.226315);
-        mMap.addMarker(new MarkerOptions().position(s3).title("Parc del fórum"));
-        LatLng s4 = new LatLng(41.391846, 2.164818);
-        mMap.addMarker(new MarkerOptions().position(s4).title("Casa Batlló"));
+        checkQuestion(location);
     }
 
     @Override
     public void onLocationChanged(Location location) {
-        Toast.makeText(this, "Location changed", Toast.LENGTH_SHORT).show();
+        checkQuestion(location);
+    }
+
+    public void checkQuestion(Location location) {
+        for (MarkerOptions point : points) {
+            if (isSamePlace(location, point)) {
+                DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        switch (which) {
+                            case DialogInterface.BUTTON_POSITIVE:
+
+                                break;
+
+                            case DialogInterface.BUTTON_NEGATIVE:
+                                resueltos++;
+                                if (resueltos >= 4) {
+                                    AlertDialog.Builder builder = new AlertDialog.Builder(getBaseContext());
+                                    builder.setMessage("Felicitats!! ja has respost correctament 4 preguntes!!").show();
+                                }
+                                break;
+                        }
+                    }
+                };
+/*
+                title("La pedrera").zIndex(1));
+                .title("Sagrada Familia").zIndex(2));
+               itle("Parc del fórum").zIndex(3));
+             title("Casa Batlló").zIndex(4));
+                .title("Joan d'austria").zIndex(5));*/
+                String question = "Hi ha hagut un error. Depén de que responguis pots obtenir punts extra";
+                switch ((int) point.getZIndex()) {
+                    case 1:
+                        question = "Hi ha una empresa d'aplicacions mòbils a la Pedrera?";
+                        break;
+                    case 2:
+                        question = "Acabaran la Sagrada familia?";
+                        break;
+                    case 3:
+                        question = "És el millor lloc on anar per les festes de la Mercé";
+                        break;
+                    case 4:
+                        question = "És una obra d'Antoni Gaudí?";
+                        break;
+                    case 5:
+                        question = "Ets alumne del Joan d'Austria?";
+                        break;
+                    default:
+                        break;
+                }
+
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setMessage(question).setPositiveButton("Si", dialogClickListener)
+                        .setNegativeButton("No", dialogClickListener).show();
+            }
+        }
+    }
+
+    public boolean isSamePlace(Location location, MarkerOptions marker) {
+        float[] distance = new float[1];
+        Location.distanceBetween(location.getLatitude(), location.getLongitude(), marker.getPosition().latitude, marker.getPosition().longitude, distance);
+        // distance[0] is now the distance between these lat/lons in meters
+        if (distance[0] < 40.0) {
+            return true;
+        }
+        return false;
     }
 }
