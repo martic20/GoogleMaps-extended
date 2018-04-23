@@ -197,9 +197,7 @@ public class MapsActivity extends FragmentActivity implements LocationListener, 
                     public void onClick(DialogInterface dialog, int which) {
                         switch (which) {
                             case DialogInterface.BUTTON_POSITIVE:
-
                                 break;
-
                             case DialogInterface.BUTTON_NEGATIVE:
                                 resueltos++;
                                 if (resueltos >= 4) {
@@ -210,12 +208,12 @@ public class MapsActivity extends FragmentActivity implements LocationListener, 
                         }
                     }
                 };
-/*
+                /*
                 title("La pedrera").zIndex(1));
-                .title("Sagrada Familia").zIndex(2));
-               itle("Parc del fórum").zIndex(3));
-             title("Casa Batlló").zIndex(4));
-                .title("Joan d'austria").zIndex(5));*/
+                title("Sagrada Familia").zIndex(2));
+                title("Parc del fórum").zIndex(3));
+                title("Casa Batlló").zIndex(4));
+                title("Joan d'austria").zIndex(5));*/
                 String question = "Hi ha hagut un error. Depén de que responguis pots obtenir punts extra";
                 switch ((int) point.getZIndex()) {
                     case 1:
@@ -231,12 +229,11 @@ public class MapsActivity extends FragmentActivity implements LocationListener, 
                         question = "És una obra d'Antoni Gaudí?";
                         break;
                     case 5:
-                        question = "Ets alumne del Joan d'Austria?";
+                        question = "Que potser ets alumne del Joan d'Austria?";
                         break;
                     default:
                         break;
                 }
-
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
                 builder.setMessage(question).setPositiveButton("Si", dialogClickListener)
                         .setNegativeButton("No", dialogClickListener).show();
